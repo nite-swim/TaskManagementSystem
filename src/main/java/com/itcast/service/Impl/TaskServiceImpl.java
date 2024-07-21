@@ -86,11 +86,11 @@ public class TaskServiceImpl implements TaskService {
             } else if (2 < userLevel && userLevel < 5) {
                 //gold+2, redPocket+1
                 taskMapper.updateGoldIntermediate(userId);
-                taskMapper.updateRedPocketIntermediate(userId);
+                taskMapper.updateRedPocket(1,userId);
             }else {
                 //gold+3, redPocket+5
                 taskMapper.updateGoldAdvanced(userId);
-                taskMapper.updateRedPocketAdvanced(userId);
+                taskMapper.updateRedPocket(5,userId);
             }
             System.out.println("任务已完成！");
         }else if (command.equalsIgnoreCase("Write Action")){
