@@ -1,7 +1,7 @@
 package com.itcast.service.Impl;
 
 import com.itcast.mapper.TaskMapper;
-import com.itcast.pojo.Task;
+import com.itcast.pojo.TaskUserLevel;
 import com.itcast.service.TaskService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Resource
-    private RedisTemplate<String, Task> redisTemplate;
+    private RedisTemplate<String, TaskUserLevel> redisTemplate;
 
     public Integer getUserLevelById(Integer id) {
         if (stringRedisTemplate.opsForValue().get("user:id:" + id)!=null){
@@ -51,9 +51,9 @@ public class TaskServiceImpl implements TaskService {
             System.out.println("From Redis");
             return resultList;
         }else {
-            List<Task> taskList = taskMapper.getTaskByUserId(userId);
-            for (Task task : taskList) {
-                resultList.add("任务名："+ task.getTaskName() + "，任务奖励：" + task.getTaskReward());
+            List<TaskUserLevel> taskUserLevelList = taskMapper.getTaskByUserId(userId);
+            for (TaskUserLevel taskUserLevel : taskUserLevelList) {
+                resultList.add("任务名："+ taskUserLevel.getTaskName() + "，任务奖励：" + taskUserLevel.getTaskReward());
             }
             stringRedisTemplate.opsForHash().put("user:level:" + userLevel, userLevel, resultList.toString());
             return resultList;
@@ -113,15 +113,15 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task getTaskInfoById(Integer taskId) {
-        Task task = new Task();
+    public TaskUserLevel getTaskInfoById(Integer taskId) {
+        TaskUserLevel taskUserLevel = new TaskUserLevel();
         if (redisTemplate.opsForValue().get("task:id:" + taskId) != null){
-            task = redisTemplate.opsForValue().get("task:id:" + taskId);
-            return task;
+            taskUserLevel = redisTemplate.opsForValue().get("task:id:" + taskId);
+            return taskUserLevel;
         }else {
-            task = taskMapper.getTaskInfoById(taskId);
-            redisTemplate.opsForValue().set("task:id:" + taskId, task);
-            return task;
+            taskUserLevel = taskMapper.getTaskInfoById(taskId);
+            redisTemplate.opsForValue().set("task:id:" + taskId, taskUserLevel);
+            return taskUserLevel;
         }
     }
 }

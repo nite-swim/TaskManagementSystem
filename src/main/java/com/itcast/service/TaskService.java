@@ -1,6 +1,6 @@
 package com.itcast.service;
 
-import com.itcast.pojo.Task;
+import com.itcast.pojo.TaskUserLevel;
 
 import java.util.List;
 
@@ -9,5 +9,5 @@ public interface TaskService {
 
     void finishTask(Integer userId);
 
-    Task getTaskInfoById(Integer taskId);
+    TaskUserLevel getTaskInfoById(Integer taskId);
 }

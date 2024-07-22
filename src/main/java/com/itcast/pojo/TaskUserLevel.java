@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Task implements Serializable {
+public class TaskUserLevel implements Serializable {
     private Integer id;
     private Integer userLevel;
     private String taskName;
