@@ -44,19 +44,25 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<String> getTaskByUserId(int userId) {
         List<String> resultList = new ArrayList<>();
-        String userLevel = String.valueOf(getUserLevelById(userId));
-        System.out.println(userLevel);
-        if (stringRedisTemplate.opsForHash().hasKey("user:level:" + userLevel, userLevel)) {
-            resultList.add((String) stringRedisTemplate.opsForHash().get("user:level:" + userLevel, userLevel));
-            System.out.println("From Redis");
+        int level = getUserLevelById(userId);
+        if (level>5){
+            resultList.add((String) stringRedisTemplate.opsForHash().get("user:level:" + "5", "5"));
             return resultList;
         }else {
-            List<TaskUserLevel> taskUserLevelList = taskMapper.getTaskByUserId(userId);
-            for (TaskUserLevel taskUserLevel : taskUserLevelList) {
-                resultList.add("任务名："+ taskUserLevel.getTaskName() + "，任务奖励：" + taskUserLevel.getTaskReward());
+            String userLevel = String.valueOf(level);
+            System.out.println(userLevel);
+            if (stringRedisTemplate.opsForHash().hasKey("user:level:" + userLevel, userLevel)) {
+                resultList.add((String) stringRedisTemplate.opsForHash().get("user:level:" + userLevel, userLevel));
+                System.out.println("From Redis");
+                return resultList;
+            }else {
+                List<TaskUserLevel> taskUserLevelList = taskMapper.getTaskByUserId(userId);
+                for (TaskUserLevel taskUserLevel : taskUserLevelList) {
+                    resultList.add("任务名："+ taskUserLevel.getTaskName() + "，任务奖励：" + taskUserLevel.getTaskReward());
+                }
+                stringRedisTemplate.opsForHash().put("user:level:" + userLevel, userLevel, resultList.toString());
+                return resultList;
             }
-            stringRedisTemplate.opsForHash().put("user:level:" + userLevel, userLevel, resultList.toString());
-            return resultList;
         }
     }
 

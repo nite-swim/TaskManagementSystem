@@ -11,5 +11,7 @@ public class User {
     private Integer id;
     private Integer level;
     private Integer gold;
-    private Integer RedPocket;
+    private Integer redPocket;
+    private String name;
+    private String password;
 }
