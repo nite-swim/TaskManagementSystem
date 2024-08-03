@@ -1,6 +1,7 @@
 package com.itcast.service.Impl;
 
 import com.itcast.mapper.TaskMapper;
+import com.itcast.pojo.Task;
 import com.itcast.pojo.TaskUserLevel;
 import com.itcast.service.TaskService;
 import jakarta.annotation.Resource;
@@ -22,6 +23,11 @@ public class TaskServiceImpl implements TaskService {
     @Resource
     private RedisTemplate<String, TaskUserLevel> redisTemplate;
 
+    /**
+     * 根据任务id查询对应的用户等级
+     * @param id
+     * @return userLevel
+     */
     public Integer getUserLevelById(Integer id) {
         if (stringRedisTemplate.opsForValue().get("user:id:" + id)!=null){
             return Integer.parseInt(stringRedisTemplate.opsForValue().get("user:id:" + id));
@@ -32,15 +38,25 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * 根据用户id给用户升级
+     * @param id
+     */
     public void updateUserLevelById(Integer id) {
         if (stringRedisTemplate.opsForValue().get("user:id:" + id)!=null){
             System.out.println("Redis更新用户等级");
             stringRedisTemplate.opsForValue().increment("user:id:" + id);
         }else {
-            getUserLevelById(id);
+            int level = taskMapper.getUserLevel(id);
+            stringRedisTemplate.opsForValue().set("user:id:" + id, String.valueOf(level));
         }
-        return;
     }
+
+    /**
+     * 根据用户id查询他可以完成的任务列表
+     * @param userId
+     * @return
+     */
     @Override
     public List<String> getTaskByUserId(int userId) {
         List<String> resultList = new ArrayList<>();
@@ -66,6 +82,12 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * 模拟用户完成任务的整个过程：用户输入指令->判断用户选择的任务->用户输入任务需要的指令->用户升级并获得奖励
+     * 此方法硬编码程度较高，如果新增了不同类型的用户可选择的任务，该方法也只会展示原来的两个任务
+     * UserServiceImpl中的progressRecord()方法基本上解决了此问题
+     * @param userId
+     */
     @Override
     public void finishTask(Integer userId) {
         System.out.println("等待输入指令（GO+数字序号）：");
@@ -80,7 +102,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-
+    /**
+     * 用户完成任务后升级并获得奖励，此方法获得奖励的代码也存在和上一个方法相似的硬编码问题，
+     * UserServiceImpl中的userGainReward()方法基本上解决了这个问题
+     * @param sc
+     * @param userLevel
+     * @param userId
+     */
     private void levelUpAndGainReward(Scanner sc, int userLevel, int userId) {
         String command = sc.nextLine();
         if (command.equalsIgnoreCase("Read Action")){
@@ -118,6 +146,11 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * 根据任务id获取任务信息
+     * @param taskId
+     * @return
+     */
     @Override
     public TaskUserLevel getTaskInfoById(Integer taskId) {
         TaskUserLevel taskUserLevel = new TaskUserLevel();
@@ -129,5 +162,25 @@ public class TaskServiceImpl implements TaskService {
             redisTemplate.opsForValue().set("task:id:" + taskId, taskUserLevel);
             return taskUserLevel;
         }
+    }
+
+    /**
+     * 新增：添加不同类型的任务
+     * 另外创建了一个Reward类实现了任务和奖励的解耦，不过把Reward类中的
+     * rewardGold和rewardRedPocket两列直接加到原来的task表中好像也可以，
+     * 考虑到那样可能会改变表结构和之前方法的一些输出结果，还是另外新建了一个表比较稳妥
+     * @param task
+     * @return
+     */
+    @Override
+    public String addTask(Task task) {
+        taskMapper.addTask(task.getTaskName(), task.getTaskType(), task.getTaskReward(),task.getUserLevel(), task.getTaskGoal(), task.getTime());
+        System.out.println("请输入金币奖励数目：");
+        Scanner sc = new Scanner(System.in);
+        int rewardGold = sc.nextInt();
+        System.out.println("请输入红包奖励钱数：");
+        int rewardRedPocket = sc.nextInt();
+        taskMapper.addReward(task.getTaskName(), rewardGold, rewardRedPocket);
+        return "OK";
     }
 }

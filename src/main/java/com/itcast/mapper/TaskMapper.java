@@ -1,10 +1,9 @@
 package com.itcast.mapper;
 
+import com.itcast.pojo.Task;
+import com.itcast.pojo.TaskInstance;
 import com.itcast.pojo.TaskUserLevel;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -39,4 +38,22 @@ public interface TaskMapper {
 
     @Update("update user set red_pocket = red_pocket + #{money} where id = #{userId}")
     void updateRedPocket(@Param("money") int money,@Param("userId") int userId);
+
+    @Select("select task.task_name from task where user_level = #{userLevel};")
+    List<String> getTaskNameByUserLevel(int userLevel);
+
+    @Select("select * from task where task_name = #{taskName}")
+    Task getTaskByTaskName(String taskName);
+
+    //@Insert("insert into task_instance_test (user_id, task_name, progress) values (#{userId}, #{taskName}, #{progress});")
+    //void insertTaskInstances(@Param("userId") int userId, @Param("taskName") String taskName, @Param("progress") int progress);
+    void insertTaskInstances(List<TaskInstance> taskInstances);
+
+
+    @Insert("insert into task (task_name, task_type, task_reward, user_level, task_goal, time) values (#{taskName}, #{taskType}, #{taskReward}, #{userLevel}, #{taskGoal}, #{time})")
+    void addTask(@Param("taskName") String taskName, @Param("taskType") String taskType, @Param("taskReward") String taskReward,
+                 @Param("userLevel") int userLevel, @Param("taskGoal") String taskGoal, @Param("time") int time);
+
+    @Insert("insert into reward (task_name, reward_gold, reward_red_pocket) values (#{taskName}, #{rewardGold}, #{rewardRedPocket})")
+    void addReward(@Param("taskName") String taskName, @Param("rewardGold") int rewardGold, @Param("rewardRedPocket") int rewardRedPocket);
 }
